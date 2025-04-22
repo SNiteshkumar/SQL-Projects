@@ -1,0 +1,128 @@
+-- Create Movies table
+CREATE TABLE Movies (
+    MovieID INT PRIMARY KEY AUTO_INCREMENT,
+    Title VARCHAR(100) NOT NULL,
+    ReleaseYear INT NOT NULL,
+    Genre VARCHAR(50),
+    DirectorID INT
+);
+
+-- Create Directors table
+CREATE TABLE Directors (
+    DirectorID INT PRIMARY KEY AUTO_INCREMENT,
+    DirectorName VARCHAR(100) NOT NULL,
+    BirthYear INT
+);
+
+-- Create Actors table
+CREATE TABLE Actors (
+    ActorID INT PRIMARY KEY AUTO_INCREMENT,
+    ActorName VARCHAR(100) NOT NULL,
+    BirthYear INT
+);
+
+-- Create MovieActors table (many-to-many relationship between Movies and Actors)
+CREATE TABLE MovieActors (
+    MovieID INT,
+    ActorID INT,
+    FOREIGN KEY (MovieID) REFERENCES Movies(MovieID),
+    FOREIGN KEY (ActorID) REFERENCES Actors(ActorID),
+    PRIMARY KEY (MovieID, ActorID)
+);
+
+-- Create Reviews table
+CREATE TABLE Reviews (
+    ReviewID INT PRIMARY KEY AUTO_INCREMENT,
+    MovieID INT,
+    ReviewerName VARCHAR(100),
+    Rating INT CHECK (Rating BETWEEN 1 AND 10),
+    ReviewText TEXT,
+    FOREIGN KEY (MovieID) REFERENCES Movies(MovieID)
+);
+
+-- Insert sample data into Directors table
+INSERT INTO Directors (DirectorName, BirthYear)
+VALUES 
+('Christopher Nolan', 1970),
+('Steven Spielberg', 1946),
+('Quentin Tarantino', 1963);
+
+-- Insert sample data into Movies table
+INSERT INTO Movies (Title, ReleaseYear, Genre, DirectorID)
+VALUES 
+('Inception', 2010, 'Sci-Fi', 1),
+('Jurassic Park', 1993, 'Adventure', 2),
+('Pulp Fiction', 1994, 'Crime', 3);
+
+-- Insert sample data into Actors table
+INSERT INTO Actors (ActorName, BirthYear)
+VALUES 
+('Leonardo DiCaprio', 1974),
+('Samuel L. Jackson', 1948),
+('Laura Dern', 1967);
+
+-- Insert sample data into MovieActors table
+INSERT INTO MovieActors (MovieID, ActorID)
+VALUES 
+(1, 1), -- Inception -> Leonardo DiCaprio
+(2, 3), -- Jurassic Park -> Laura Dern
+(3, 2); -- Pulp Fiction -> Samuel L. Jackson
+
+-- Insert sample data into Reviews table
+INSERT INTO Reviews (MovieID, ReviewerName, Rating, ReviewText)
+VALUES 
+(1, 'Alice', 9, 'Mind-bending and visually stunning!'),
+(2, 'Bob', 8, 'A thrilling adventure with groundbreaking effects.'),
+(3, 'Charlie', 10, 'A masterpiece of storytelling.');
+
+-- Retrieve all movies with director names
+SELECT 
+    m.MovieID,
+    m.Title,
+    m.ReleaseYear,
+    m.Genre,
+    d.DirectorName
+FROM Movies m
+LEFT JOIN Directors d ON m.DirectorID = d.DirectorID;
+
+-- Retrieve all actors in a specific movie
+SELECT 
+    m.Title AS MovieTitle,
+    a.ActorName
+FROM MovieActors ma
+LEFT JOIN Movies m ON ma.MovieID = m.MovieID
+LEFT JOIN Actors a ON ma.ActorID = a.ActorID
+WHERE m.Title = 'Inception';
+
+-- Calculate average rating for each movie
+SELECT 
+    m.Title,
+    AVG(r.Rating) AS AverageRating
+FROM Reviews r
+LEFT JOIN Movies m ON r.MovieID = m.MovieID
+GROUP BY m.Title;
+
+-- Add a new movie
+INSERT INTO Movies (Title, ReleaseYear, Genre, DirectorID)
+VALUES ('The Dark Knight', 2008, 'Action', 1);
+
+-- Add a new actor to a movie
+INSERT INTO MovieActors (MovieID, ActorID)
+VALUES (4, 1); -- The Dark Knight -> Leonardo DiCaprio (example)
+
+-- Update the rating of a review
+UPDATE Reviews
+SET Rating = 10, ReviewText = 'Simply phenomenal!'
+WHERE ReviewID = 1;
+
+-- Delete a movie
+DELETE FROM Movies
+WHERE MovieID = 2;
+
+-- Retrieve all movies sorted by release year
+SELECT 
+    Title,
+    ReleaseYear,
+    Genre
+FROM Movies
+ORDER BY ReleaseYear ASC;
